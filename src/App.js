@@ -14,7 +14,9 @@ import TableContainer from '@mui/material/TableContainer'
 import Table from '@mui/material/Table'
 import TableCell from '@mui/material/TableCell'
 import TableBody from '@mui/material/TableBody'
+import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import TextField from '@mui/material/TextField'
 import partsService from './services/parts'
 
 const Makes = () => {
@@ -208,6 +210,59 @@ const Drawings = () => {
   </Paper >
 }
 
+const VinSearch = () => {
+  const [vin, setVin] = useState('')
+  const [results, setResults] = useState(null)
+
+  useEffect(() => {
+    // partsService.searchVin(vin)
+    //   .then(makes => {
+    //     setMakes(makes.data)
+    //   })
+  }, [])
+
+  const searchVin = (event) => {
+    event.preventDefault()
+    partsService.searchVin(vin)
+      .then(vins => {
+        console.log(vins.data)
+        setResults(vins.data)
+      })
+  }
+
+  return <Paper style={{ padding: 20 }}>
+    <TextField id="vin" label="Vin" variant="outlined" onChange={({ target }) => setVin(target.value)} />
+    <Button onClick={(event) => searchVin(event)}>Search VIN</Button>
+
+    {results &&
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Catalogue</TableCell>
+              <TableCell>Model</TableCell>
+              <TableCell>Series</TableCell>
+              <TableCell>Version</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {results.map((vinResult, index) => (
+              <TableRow key={index}>
+                <TableCell>{vinResult.catalogue}</TableCell>
+                <TableCell>{vinResult.model}</TableCell>
+                <TableCell>{vinResult.series}</TableCell>
+                <TableCell>{vinResult.version}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    }
+
+    {results && <div>{results.catalogue}</div>}
+  </Paper>
+}
+
 const Main = () => {
   return <h1>Main</h1>
 }
@@ -238,6 +293,7 @@ const App = () => {
           <Route path="/makes/:make" element={<Catalogues />} />
           <Route path="/groups/:make/:catalogue" element={<Groups />} />
           <Route path="/sub_groups/:make/:catalogue/:group" element={<SubGroups />} />
+          <Route path="/search" element={<VinSearch />} />
         </Routes>
       </Router>
     </Container>

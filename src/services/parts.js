@@ -21,4 +21,8 @@ const getDrawings = async (catalogue, group, sub_group) => {
   return await axios.get(`${baseUrl}/drawings/${catalogue}/${group}/${sub_group}`)
 }
 
-export default { getMakes, getCatalogues, getGroups, getSubGroups, getDrawings }
+const searchVin = async (vin) => {
+  return await axios.get(`${baseUrl}/vin/${vin}`)
+}
+
+export default { getMakes, getCatalogues, getGroups, getSubGroups, getDrawings, searchVin }
