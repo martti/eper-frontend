@@ -1,22 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import {
-  BrowserRouter as Router, Route, Routes, Link, useParams, Outlet
+  BrowserRouter as Router, Route, Routes, Link, useParams, Outlet, Navigate
 } from 'react-router-dom'
-import Container from '@mui/material/Container'
-import AppBar from '@mui/material/AppBar'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Paper from '@mui/material/Paper'
-import Breadcrumbs from '@mui/material/Breadcrumbs'
-import TableContainer from '@mui/material/TableContainer'
-import Table from '@mui/material/Table'
-import TableCell from '@mui/material/TableCell'
-import TableBody from '@mui/material/TableBody'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import TextField from '@mui/material/TextField'
+import {
+  Container, AppBar, Toolbar,
+  Typography, Box, Button, Paper, Breadcrumbs,
+  TableContainer, Table, TableCell, TableBody, TableHead, TableRow,
+  TextField,
+} from '@mui/material'
 import partsService from './services/parts'
 
 const Makes = () => {
@@ -33,7 +24,7 @@ const Makes = () => {
     {makes.map(make => (
       <Link
         style={{ display: 'block', margin: '1rem 0' }}
-        to={`/makes/${make.make}`}
+        to={`/models/${make.make}`}
         key={make.make}
       >
         {make.description}
@@ -42,8 +33,9 @@ const Makes = () => {
   </Paper>
 }
 
-const BreadcrumbsElement = ({ make, catalogue, group, sub_group }) => {
+const BreadcrumbsElement = ({ make, model, catalogue, group, sub_group }) => {
   const [makeDescription, setMake] = useState('')
+  const [modelDescription, setModel] = useState('')
   const [catalogueDescription, setCatalogue] = useState('')
   const [groupDescription, setGroup] = useState('')
   const [subGroupDescription, setSubGroup] = useState('')
@@ -55,72 +47,88 @@ const BreadcrumbsElement = ({ make, catalogue, group, sub_group }) => {
           const selectedMake = makes.data.find(m => m.make === make)
           setMake(selectedMake.description)
         })
-      if (catalogue) {
-        partsService.getCatalogues(make)
-          .then(catalogues => {
-            const selectedCatalogue = catalogues.data.find(m => m.code === catalogue)
-            setCatalogue(selectedCatalogue.description)
+      if (model) {
+        partsService.getModels()
+          .then(models => {
+            const selectedModel = models.data.find(m => m.model === model)
+            setModel(selectedModel.description)
           })
-        if (group) {
-          partsService.getGroups(catalogue)
-            .then(groups => {
-              const selectedGroup = groups.data.find(m => m.code === group)
-              setGroup(selectedGroup.description)
+
+        if (catalogue) {
+          partsService.getCatalogues(make, model)
+            .then(catalogues => {
+              const selectedCatalogue = catalogues.data.find(m => m.code === catalogue)
+              setCatalogue(selectedCatalogue.description)
             })
-          if (sub_group) {
-            partsService.getSubGroups(catalogue, group)
+          if (group) {
+            partsService.getGroups(catalogue)
               .then(groups => {
-                const selectedSubGroup = groups.data.find(m => m.code === sub_group)
-                setSubGroup(selectedSubGroup.description)
+                const selectedGroup = groups.data.find(m => m.code === group)
+                setGroup(selectedGroup.description)
               })
+            if (sub_group) {
+              partsService.getSubGroups(catalogue, group)
+                .then(groups => {
+                  const selectedSubGroup = groups.data.find(m => m.code === sub_group)
+                  setSubGroup(selectedSubGroup.description)
+                })
+
+            }
 
           }
-
         }
       }
     }
   }, [])
 
   let showMake = false
+  let showModel = false
   let showCatalogue = false
   let showGroup = false
   let showSubGroup = false
-  if (catalogue) {
+  if (model) {
     showMake = true
-    if (group) {
-      showCatalogue = true
-      if (sub_group) {
-        showGroup = true
-        showSubGroup = true
+    if (catalogue) {
+      showModel = true
+      if (group) {
+        showCatalogue = true
+        if (sub_group) {
+          showGroup = true
+          showSubGroup = true
+        }
       }
     }
   }
 
   return <Breadcrumbs aria-label="breadcrumb">
     <Link to="/makes">Makes</Link>
-    {showMake ? <Link to={`/makes/${make}`}>{makeDescription}</Link> : <Typography color="text.primary">{makeDescription}</Typography>}
-    {showCatalogue ? <Link to={`/groups/${make}/${catalogue}`}>{catalogueDescription}</Link> : <Typography color="text.primary">{catalogueDescription}</Typography>}
-    {showGroup ? <Link to={`/sub_groups/${make}/${catalogue}/${group}`}>{groupDescription}</Link> : <Typography color="text.primary">{groupDescription}</Typography>}
+    {showMake ? <Link to={`/models/${make}`}>{makeDescription}</Link> : <Typography color="text.primary">{makeDescription}</Typography>}
+    {showModel ? <Link to={`/catalogues/${make}/${model}`}>{modelDescription}</Link> : <Typography color="text.primary">{modelDescription}</Typography>}
+    {showCatalogue ? <Link to={`/groups/${make}/${model}/${catalogue}`}>{catalogueDescription}</Link> : <Typography color="text.primary">{catalogueDescription}</Typography>}
+    {showGroup ? <Link to={`/sub_groups/${make}/${model}/${catalogue}/${group}`}>{groupDescription}</Link> : <Typography color="text.primary">{groupDescription}</Typography>}
     {showSubGroup && <Typography color="text.primary">{subGroupDescription}</Typography>}
   </Breadcrumbs>
 }
 
+// eslint-disable-next-line no-unused-vars
 const Catalogues = () => {
   const [catalogues, setCatalogues] = useState([])
-  const { make } = useParams()
+  const { make, model } = useParams()
 
   useEffect(() => {
-    partsService.getCatalogues(make)
+    partsService.getCatalogues(make, model)
       .then(catalogues => {
-        setCatalogues(catalogues.data)
+        setCatalogues(
+          catalogues.data.sort((a, b) => a.sort_key - b.sort_key)
+        )
       })
   }, [])
   return <Paper style={{ padding: 20 }}>
-    <BreadcrumbsElement make={make} />
+    <BreadcrumbsElement make={make} model={model} />
     {catalogues.map(catalogue => (
       <Link
         style={{ display: 'block', margin: '1rem 0' }}
-        to={`/groups/${make}/${catalogue.code}`}
+        to={`/groups/${make}/${model}/${catalogue.code}`}
         key={catalogue.code}
       >
         {catalogue.description}
@@ -129,9 +137,36 @@ const Catalogues = () => {
   </Paper>
 }
 
+const Models = () => {
+  const [models, setModels] = useState([])
+  const { make } = useParams()
+
+  useEffect(() => {
+    partsService.getModels()
+      .then(models => {
+        setModels(models.data
+          .sort((a, b) => a.sort_key - b.sort_key)
+          .filter((m) => m.make === make))
+      })
+  }, [])
+  return <Paper style={{ padding: 20 }}>
+    <BreadcrumbsElement make={make} />
+    {models.map(model => (
+      <Link
+        style={{ display: 'block', margin: '1rem 0' }}
+        to={`/catalogues/${make}/${model.model}`}
+        key={model.model}
+      >
+        {model.description}
+        {/* <img src={model.image} alt={model.description} /> */}
+      </Link>
+    ))}
+  </Paper>
+}
+
 const Groups = () => {
   const [groups, setGroups] = useState([])
-  const { make, catalogue } = useParams()
+  const { make, model, catalogue } = useParams()
 
   useEffect(() => {
     partsService.getGroups(catalogue)
@@ -140,11 +175,11 @@ const Groups = () => {
       })
   }, [])
   return <Paper style={{ padding: 20 }}>
-    <BreadcrumbsElement make={make} catalogue={catalogue} />
+    <BreadcrumbsElement make={make} model={model} catalogue={catalogue} />
     {groups.map(group => (
       <Link
         style={{ display: 'block', margin: '1rem 0' }}
-        to={`/sub_groups/${make}/${catalogue}/${group.code}`}
+        to={`/sub_groups/${make}/${model}/${catalogue}/${group.code}`}
         key={group.code}
       >
         {group.description}
@@ -156,7 +191,7 @@ const Groups = () => {
 
 const SubGroups = () => {
   const [groups, setGroups] = useState([])
-  const { make, catalogue, group } = useParams()
+  const { make, model, catalogue, group } = useParams()
 
   useEffect(() => {
     partsService.getSubGroups(catalogue, group)
@@ -165,11 +200,11 @@ const SubGroups = () => {
       })
   }, [group])
   return <Paper style={{ padding: 20 }}>
-    <BreadcrumbsElement make={make} catalogue={catalogue} group={group} />
+    <BreadcrumbsElement make={make} model={model} catalogue={catalogue} group={group} />
     {groups.map(sub_group => (
       <Link
         style={{ display: 'block', margin: '1rem 0' }}
-        to={`/drawings/${make}/${catalogue}/${group}/${sub_group.code}`}
+        to={`/drawings/${make}/${model}/${catalogue}/${group}/${sub_group.code}`}
         key={sub_group.code}
       >
         {sub_group.description}
@@ -179,9 +214,41 @@ const SubGroups = () => {
   </Paper>
 }
 
+const Parts = ({ drawing }) => {
+  const [parts, setParts] = useState([])
+
+  useEffect(() => {
+    partsService.getParts(drawing.catalogue, drawing.group, drawing.sub_group, drawing.sgs_code)
+      .then(parts => {
+        setParts(parts.data)
+      })
+  }, [])
+
+  return <div>
+    <table>
+      <thead>
+        <tr>
+          <th>Image#</th>
+          <th>Code</th>
+          <th>Qty</th>
+        </tr>
+      </thead>
+      <tbody>
+        {parts.map((part, index) => (
+          <tr key={index}>
+            <td>{part.drawing_part_number}</td>
+            <td>{part.part_code}</td>
+            <td>{part.qty}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+}
+
 const Drawings = () => {
   const [drawings, setDrawings] = useState([])
-  const { make, catalogue, group, sub_group } = useParams()
+  const { make, model, catalogue, group, sub_group } = useParams()
 
   useEffect(() => {
     partsService.getDrawings(catalogue, group, sub_group)
@@ -191,7 +258,7 @@ const Drawings = () => {
   }, [sub_group])
   return <Paper style={{ padding: 20 }}>
     <TableContainer>
-      <BreadcrumbsElement make={make} catalogue={catalogue} group={group} sub_group={sub_group} />
+      <BreadcrumbsElement make={make} model={model} catalogue={catalogue} group={group} sub_group={sub_group} />
       <Table>
         <TableBody>
           {drawings.map((drawing, index) => (
@@ -201,6 +268,8 @@ const Drawings = () => {
               </TableCell>
               <TableCell align="left" style={{ verticalAlign: 'top' }}>
                 <div>{drawing.code} {drawing.description}</div>
+                <div>{drawing.pattern}</div>
+                <Parts drawing={drawing} />
               </TableCell>
             </TableRow>
           ))}
@@ -214,20 +283,17 @@ const VinSearch = () => {
   const [vin, setVin] = useState('')
   const [results, setResults] = useState(null)
 
-  useEffect(() => {
-    // partsService.searchVin(vin)
-    //   .then(makes => {
-    //     setMakes(makes.data)
-    //   })
-  }, [])
-
   const searchVin = (event) => {
     event.preventDefault()
     partsService.searchVin(vin)
       .then(vins => {
-        console.log(vins.data)
         setResults(vins.data)
       })
+  }
+
+  const patternTypeStyle = {
+    fontWeight: 'bold',
+    marginRight: 5,
   }
 
   return <Paper style={{ padding: 20 }}>
@@ -243,15 +309,29 @@ const VinSearch = () => {
               <TableCell>Model</TableCell>
               <TableCell>Series</TableCell>
               <TableCell>Version</TableCell>
+              <TableCell>Description</TableCell>
+              <TableCell>Pattern</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {results.map((vinResult, index) => (
               <TableRow key={index}>
-                <TableCell>{vinResult.catalogue}</TableCell>
-                <TableCell>{vinResult.model}</TableCell>
-                <TableCell>{vinResult.series}</TableCell>
-                <TableCell>{vinResult.version}</TableCell>
+                <TableCell style={{ verticalAlign: 'top' }}><Link to={`/groups/${vinResult.catalogue.make}/${vinResult.catalogue.model}/${vinResult.catalogue.code}`}>{vinResult.catalogue.description}</Link></TableCell>
+                <TableCell style={{ verticalAlign: 'top' }}>{vinResult.model}</TableCell>
+                <TableCell style={{ verticalAlign: 'top' }}>{vinResult.series}</TableCell>
+                <TableCell style={{ verticalAlign: 'top' }}>{vinResult.version}</TableCell>
+                <TableCell style={{ verticalAlign: 'top' }}>{vinResult.description}</TableCell>
+                <TableCell>
+                  <div>
+                    {vinResult.pattern.map((attribute, index) => (
+                      <div key={index}>
+                        {attribute[1] && <span style={patternTypeStyle}>{attribute[1]}</span>}
+                        <span>- {attribute[2]}</span>
+                        <span> ({attribute[0]})</span>
+                      </div>
+                    ))}
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -263,9 +343,9 @@ const VinSearch = () => {
   </Paper>
 }
 
-const Main = () => {
-  return <h1>Main</h1>
-}
+// const Main = () => {
+//   return <h1>Main</h1>
+// }
 
 const Menu = () => {
   return (
@@ -287,12 +367,13 @@ const App = () => {
       <Router>
         <Menu />
         <Routes>
-          <Route path="/" element={<Main />} />
+          <Route path="/" element={<Navigate to='/makes' replace />} />
           <Route path="/makes" element={<Makes />} />
-          <Route path="/drawings/:make/:catalogue/:group/:sub_group" element={<Drawings />} />
-          <Route path="/makes/:make" element={<Catalogues />} />
-          <Route path="/groups/:make/:catalogue" element={<Groups />} />
-          <Route path="/sub_groups/:make/:catalogue/:group" element={<SubGroups />} />
+          <Route path="/drawings/:make/:model/:catalogue/:group/:sub_group" element={<Drawings />} />
+          <Route path="/models/:make" element={<Models />} />
+          <Route path="/catalogues/:make/:model/" element={<Catalogues />} />
+          <Route path="/groups/:make/:model/:catalogue" element={<Groups />} />
+          <Route path="/sub_groups/:make/:model/:catalogue/:group" element={<SubGroups />} />
           <Route path="/search" element={<VinSearch />} />
         </Routes>
       </Router>
