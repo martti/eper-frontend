@@ -1,22 +1,26 @@
 module.exports = {
   'env': {
     'browser': true,
-    'es6': true,
-    'jest/globals': true
+    'es2020': true
   },
   'extends': [
     'eslint:recommended',
-    'plugin:react/recommended'
+    'plugin:react/recommended',
+    'plugin:react/jsx-runtime',
+    'plugin:react-hooks/recommended',
   ],
+  'ignorePatterns': ['dist', '.eslintrc.js'],
   'parserOptions': {
-    'ecmaFeatures': {
-      'jsx': true
-    },
-    'ecmaVersion': 2018,
+    'ecmaVersion': 'latest',
     'sourceType': 'module'
   },
+  'settings': {
+    'react': {
+      'version': 'detect'
+    }
+  },
   'plugins': [
-    'react', 'jest'
+    'react-refresh'
   ],
   'rules': {
     'indent': [
@@ -43,12 +47,11 @@ module.exports = {
     'arrow-spacing': [
       'error', { 'before': true, 'after': true }
     ],
+    'react-refresh/only-export-components': [
+      'warn',
+      { 'allowConstantExport': true },
+    ],
     'no-console': 0,
     'react/prop-types': 0
-  },
-  'settings': {
-    'react': {
-      'version': 'detect'
-    }
   }
 }

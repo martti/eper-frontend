@@ -1,13 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  BrowserRouter as Router, Route, Routes, Link, useParams, Outlet, Navigate
+  BrowserRouter as Router, Route, Routes, NavLink, Link, useParams, Outlet, Navigate
 } from 'react-router-dom'
-import {
-  Container, AppBar, Toolbar,
-  Typography, Box, Button, Paper, Breadcrumbs,
-  TableContainer, Table, TableCell, TableBody, TableHead, TableRow,
-  TextField,
-} from '@mui/material'
 import partsService from './services/parts'
 
 const Makes = () => {
@@ -19,18 +13,45 @@ const Makes = () => {
         setMakes(makes.data)
       })
   }, [])
-  return <Paper style={{ padding: 20 }}>
+  return <>
 
-    {makes.map(make => (
-      <Link
-        style={{ display: 'block', margin: '1rem 0' }}
-        to={`/models/${make.make}`}
-        key={make.make}
-      >
-        {make.description}
-      </Link>
-    ))}
-  </Paper>
+    <BreadcrumbsElement />
+    <div className="grid mb-12 grid-cols-4">
+
+      {makes.map(make => (
+        <div key={make.make} className="flex flex-col p-4 text-center bg-white">
+          <Link to={`/models/${make.make}`} className="block max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">
+            <figcaption className="flex items-center space-x-3">
+
+              <img className="rounded-full w-20 h-20" src={make.image} />
+              <div className="space-y-0.5 font-medium text-left">{make.description}</div>
+            </figcaption>
+          </Link>
+        </div>
+
+      ))}
+    </div>
+  </>
+}
+
+const CrumbItem = ({ linkTo, description, show }) => {
+  return show ? <li>
+    <div className="flex items-center">
+      <svg className="w-3 h-3 mx-1 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 9 4-4-4-4"/>
+      </svg>
+      <Link className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600" to={linkTo}>{description}</Link></div>
+  </li>
+    :
+    description &&
+    <li>
+      <div className="flex items-center">
+        <svg className="w-3 h-3 mx-1 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+          <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 9 4-4-4-4"/>
+        </svg>
+        <span className="text-sm font-medium text-gray-500">{description}</span>
+      </div>
+    </li>
 }
 
 const BreadcrumbsElement = ({ make, model, catalogue, group, sub_group }) => {
@@ -79,7 +100,7 @@ const BreadcrumbsElement = ({ make, model, catalogue, group, sub_group }) => {
         }
       }
     }
-  }, [])
+  }, [make, model, catalogue, group, sub_group])
 
   let showMake = false
   let showModel = false
@@ -100,17 +121,32 @@ const BreadcrumbsElement = ({ make, model, catalogue, group, sub_group }) => {
     }
   }
 
-  return <Breadcrumbs aria-label="breadcrumb">
-    <Link to="/makes">Makes</Link>
-    {showMake ? <Link to={`/models/${make}`}>{makeDescription}</Link> : <Typography color="text.primary">{makeDescription}</Typography>}
-    {showModel ? <Link to={`/catalogues/${make}/${model}`}>{modelDescription}</Link> : <Typography color="text.primary">{modelDescription}</Typography>}
-    {showCatalogue ? <Link to={`/groups/${make}/${model}/${catalogue}`}>{catalogueDescription}</Link> : <Typography color="text.primary">{catalogueDescription}</Typography>}
-    {showGroup ? <Link to={`/sub_groups/${make}/${model}/${catalogue}/${group}`}>{groupDescription}</Link> : <Typography color="text.primary">{groupDescription}</Typography>}
-    {showSubGroup && <Typography color="text.primary">{subGroupDescription}</Typography>}
-  </Breadcrumbs>
+  return <nav className="flex px-5 py-3 text-gray-700 border border-gray-200 rounded-lg bg-gray-50" aria-label="Breadcrumb">
+    <ol className="inline-flex items-center space-x-3">
+      <li className="inline-flex items-center">
+        <Link to="/makes" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+        Makes
+        </Link>
+      </li>
+
+      <CrumbItem show={showMake} linkTo={`/models/${make}`} description={makeDescription} />
+      <CrumbItem show={showModel} linkTo={`/catalogues/${make}/${model}`} description={modelDescription} />
+      <CrumbItem show={showCatalogue} linkTo={`/groups/${make}/${model}/${catalogue}`} description={catalogueDescription} />
+      <CrumbItem show={showGroup} linkTo={`/sub_groups/${make}/${model}/${catalogue}/${group}`} description={groupDescription} />
+
+      {showSubGroup && <li>
+        <div className="flex items-center">
+          <svg className="w-3 h-3 mx-1 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 9 4-4-4-4"/>
+          </svg>
+          <span className="text-sm font-medium text-gray-500">{subGroupDescription}</span>
+        </div>
+      </li>}
+    </ol>
+  </nav>
+
 }
 
-// eslint-disable-next-line no-unused-vars
 const Catalogues = () => {
   const [catalogues, setCatalogues] = useState([])
   const { make, model } = useParams()
@@ -122,19 +158,25 @@ const Catalogues = () => {
           catalogues.data.sort((a, b) => a.sort_key - b.sort_key)
         )
       })
-  }, [])
-  return <Paper style={{ padding: 20 }}>
+  }, [make, model])
+  return <>
     <BreadcrumbsElement make={make} model={model} />
-    {catalogues.map(catalogue => (
-      <Link
-        style={{ display: 'block', margin: '1rem 0' }}
-        to={`/groups/${make}/${model}/${catalogue.code}`}
-        key={catalogue.code}
-      >
-        {catalogue.description}
-      </Link>
-    ))}
-  </Paper>
+    <div className="grid mb-12 grid-cols-4">
+      {catalogues.map(catalogue => (
+        <div key={catalogue.code} className="flex flex-col p-4 bg-white">
+          <Link
+            className="block max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100"        to={`/groups/${make}/${model}/${catalogue.code}`}
+          >
+            <figcaption className="flex items-center space-x-3">
+              <img className="rounded-full w-20 h-20" src={catalogue.image} alt={catalogue.description} />
+              <div className="space-y-0.5 font-medium text-left">{catalogue.description}</div>
+            </figcaption>
+
+          </Link>
+        </div>
+      ))}
+    </div>
+  </>
 }
 
 const Models = () => {
@@ -148,20 +190,25 @@ const Models = () => {
           .sort((a, b) => a.sort_key - b.sort_key)
           .filter((m) => m.make === make))
       })
-  }, [])
-  return <Paper style={{ padding: 20 }}>
+  }, [make])
+  return <>
     <BreadcrumbsElement make={make} />
-    {models.map(model => (
-      <Link
-        style={{ display: 'block', margin: '1rem 0' }}
-        to={`/catalogues/${make}/${model.model}`}
-        key={model.model}
-      >
-        {model.description}
-        {/* <img src={model.image} alt={model.description} /> */}
-      </Link>
-    ))}
-  </Paper>
+    <div className="grid mb-12 grid-cols-4">
+      {models.map(model => (
+        <div key={model.model} className="flex flex-col p-4 bg-white">
+          <Link
+            className="block max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100"
+            to={`/catalogues/${make}/${model.model}`}
+          >
+            <figcaption className="flex items-center space-x-3">
+              <img className="rounded-full w-20 h-20" src={model.image} alt={model.description} />
+              <div className="space-y-0.5 font-medium text-left">{model.description}</div>
+            </figcaption>
+          </Link>
+        </div>
+      ))}
+    </div>
+  </>
 }
 
 const Groups = () => {
@@ -173,8 +220,8 @@ const Groups = () => {
       .then(groups => {
         setGroups(groups.data)
       })
-  }, [])
-  return <Paper style={{ padding: 20 }}>
+  }, [catalogue])
+  return <>
     <BreadcrumbsElement make={make} model={model} catalogue={catalogue} />
     {groups.map(group => (
       <Link
@@ -186,7 +233,7 @@ const Groups = () => {
       </Link>
     ))}
     <Outlet />
-  </Paper>
+  </>
 }
 
 const SubGroups = () => {
@@ -198,8 +245,8 @@ const SubGroups = () => {
       .then(groups => {
         setGroups(groups.data)
       })
-  }, [group])
-  return <Paper style={{ padding: 20 }}>
+  }, [catalogue, group])
+  return <>
     <BreadcrumbsElement make={make} model={model} catalogue={catalogue} group={group} />
     {groups.map(sub_group => (
       <Link
@@ -211,7 +258,7 @@ const SubGroups = () => {
       </Link>
     ))}
     <Outlet />
-  </Paper>
+  </>
 }
 
 const Parts = ({ drawing }) => {
@@ -222,7 +269,7 @@ const Parts = ({ drawing }) => {
       .then(parts => {
         setParts(parts.data)
       })
-  }, [])
+  }, [drawing.catalogue, drawing.group, drawing.sub_group, drawing.sgs_code])
 
   return <div>
     <table>
@@ -255,28 +302,26 @@ const Drawings = () => {
       .then(drawings => {
         setDrawings(drawings.data)
       })
-  }, [sub_group])
-  return <Paper style={{ padding: 20 }}>
-    <TableContainer>
-      <BreadcrumbsElement make={make} model={model} catalogue={catalogue} group={group} sub_group={sub_group} />
-      <Table>
-        <TableBody>
-          {drawings.map((drawing, index) => (
-            <TableRow key={index}>
-              <TableCell style={{ width: 400 }}>
-                <img style={{ maxWidth: '400px' }} src={`${drawing.image}`} alt={drawing.description} />
-              </TableCell>
-              <TableCell align="left" style={{ verticalAlign: 'top' }}>
-                <div>{drawing.code} {drawing.description}</div>
-                <div>{drawing.pattern}</div>
-                <Parts drawing={drawing} />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  </Paper >
+  }, [catalogue, group, sub_group])
+  return <>
+    <BreadcrumbsElement make={make} model={model} catalogue={catalogue} group={group} sub_group={sub_group} />
+    <table>
+      <tbody>
+        {drawings.map((drawing, index) => (
+          <tr key={index}>
+            <td style={{ width: 400 }}>
+              <img style={{ maxWidth: '400px' }} src={`${drawing.image}`} alt={drawing.description} />
+            </td>
+            <td align="left" style={{ verticalAlign: 'top' }}>
+              <div>{drawing.code} {drawing.description}</div>
+              <div>{drawing.pattern}</div>
+              <Parts drawing={drawing} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </>
 }
 
 const VinSearch = () => {
@@ -296,32 +341,31 @@ const VinSearch = () => {
     marginRight: 5,
   }
 
-  return <Paper style={{ padding: 20 }}>
-    <TextField id="vin" label="Vin" variant="outlined" onChange={({ target }) => setVin(target.value)} />
-    <Button onClick={(event) => searchVin(event)}>Search VIN</Button>
+  return <div style={{ padding: 20 }}>
+    <input className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" type="text" id="vin" label="Vin" onChange={({ target }) => setVin(target.value)} />
+    <button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full px-5 py-2.5 text-center" onClick={(event) => searchVin(event)}>Search VIN</button>
 
     {results &&
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Catalogue</TableCell>
-              <TableCell>Model</TableCell>
-              <TableCell>Series</TableCell>
-              <TableCell>Version</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Pattern</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+        <table>
+          <thead>
+            <tr>
+              <th>Catalogue</th>
+              <th>Model</th>
+              <th>Series</th>
+              <th>Version</th>
+              <th>Description</th>
+              <th>Pattern</th>
+            </tr>
+          </thead>
+          <tbody>
             {results.map((vinResult, index) => (
-              <TableRow key={index}>
-                <TableCell style={{ verticalAlign: 'top' }}><Link to={`/groups/${vinResult.catalogue.make}/${vinResult.catalogue.model}/${vinResult.catalogue.code}`}>{vinResult.catalogue.description}</Link></TableCell>
-                <TableCell style={{ verticalAlign: 'top' }}>{vinResult.model}</TableCell>
-                <TableCell style={{ verticalAlign: 'top' }}>{vinResult.series}</TableCell>
-                <TableCell style={{ verticalAlign: 'top' }}>{vinResult.version}</TableCell>
-                <TableCell style={{ verticalAlign: 'top' }}>{vinResult.description}</TableCell>
-                <TableCell>
+              <tr key={index}>
+                <td style={{ verticalAlign: 'top' }}><Link to={`/groups/${vinResult.catalogue.make}/${vinResult.catalogue.model}/${vinResult.catalogue.code}`}>{vinResult.catalogue.description}</Link></td>
+                <td style={{ verticalAlign: 'top' }}>{vinResult.model}</td>
+                <td style={{ verticalAlign: 'top' }}>{vinResult.series}</td>
+                <td style={{ verticalAlign: 'top' }}>{vinResult.version}</td>
+                <td style={{ verticalAlign: 'top' }}>{vinResult.description}</td>
+                <td>
                   <div>
                     {vinResult.pattern.map((attribute, index) => (
                       <div key={index}>
@@ -331,16 +375,15 @@ const VinSearch = () => {
                       </div>
                     ))}
                   </div>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          </tbody>
+        </table>
     }
 
     {results && <div>{results.catalogue}</div>}
-  </Paper>
+  </div>
 }
 
 // const Main = () => {
@@ -349,35 +392,40 @@ const VinSearch = () => {
 
 const Menu = () => {
   return (
-    <AppBar position="static" elevation={0}>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div" sx={{ mr: 2 }}>ePER parts</Typography>
-        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-          <Button color="inherit" component={Link} to="/makes">makes</Button>
-          <Button color="inherit" component={Link} to="/search">vin search</Button>
-        </Box>
-      </Toolbar>
-    </AppBar>
+    <nav className="bg-gray border-b border-gray-200">
+      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+        ePer parts
+        <div className="w-auto" id="navbar-default">
+          <ul className="flex flex-row space-x-8 mt-0 border-0 bg-white">
+            <li>
+              <NavLink to="/makes" className={({ isActive }) => isActive ? 'text-blue-700 p-0' : 'hover:text-blue-700 p-0'}>makes</NavLink>
+            </li>
+            <li>
+              <NavLink to="/search" className={({ isActive }) => isActive ? 'text-blue-700 p-0' : 'hover:text-blue-700 p-0'}>vin search</NavLink>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
   )
 }
 
 const App = () => {
   return (
-    <Container maxWidth="lg">
-      <Router>
-        <Menu />
-        <Routes>
-          <Route path="/" element={<Navigate to='/makes' replace />} />
-          <Route path="/makes" element={<Makes />} />
-          <Route path="/drawings/:make/:model/:catalogue/:group/:sub_group" element={<Drawings />} />
-          <Route path="/models/:make" element={<Models />} />
-          <Route path="/catalogues/:make/:model/" element={<Catalogues />} />
-          <Route path="/groups/:make/:model/:catalogue" element={<Groups />} />
-          <Route path="/sub_groups/:make/:model/:catalogue/:group" element={<SubGroups />} />
-          <Route path="/search" element={<VinSearch />} />
-        </Routes>
-      </Router>
-    </Container>
+    <Router>
+      <Menu />
+      <Routes>
+        <Route path="/" element={<Navigate to='/makes' replace />} />
+        <Route path="/makes" element={<Makes />} />
+        <Route path="/drawings/:make/:model/:catalogue/:group/:sub_group" element={<Drawings />} />
+        <Route path="/models/:make" element={<Models />} />
+        <Route path="/catalogues/:make/:model/" element={<Catalogues />} />
+        <Route path="/groups/:make/:model/:catalogue" element={<Groups />} />
+        <Route path="/sub_groups/:make/:model/:catalogue/:group" element={<SubGroups />} />
+        <Route path="/search" element={<VinSearch />} />
+      </Routes>
+    </Router>
   )
 }
 

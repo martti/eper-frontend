@@ -7,10 +7,23 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-          target: 'http://localhost:3001',
-          changeOrigin: true,
-          secure: false,      
-          ws: true,
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
       }
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: './src/setupTests.ts',
+      css: true,
+      reporters: ['verbose'],
+      coverage: {
+        reporter: ['text', 'json', 'html'],
+        include: ['src/**/*'],
+        exclude: [],
+      }
+    },
   }
-}})
+})
