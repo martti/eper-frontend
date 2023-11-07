@@ -22,15 +22,28 @@ const getSubGroups = async (catalogue, group) => {
 }
 
 const getDrawings = async (catalogue, group, sub_group) => {
-  return await axios.get(`${baseUrl}/drawings/${catalogue}/${group}/${sub_group}`)
+  return await axios.get(
+    `${baseUrl}/drawings/${catalogue}/${group}/${sub_group}`
+  )
 }
 
 const getParts = async (catalogue, group, sub_group, sgs_code) => {
-  return await axios.get(`${baseUrl}/parts/${catalogue}/${group}/${sub_group}/${sgs_code}`)
+  return await axios.get(
+    `${baseUrl}/parts/${catalogue}/${group}/${sub_group}/${sgs_code}`
+  )
 }
 
 const searchVin = async (vin) => {
   return await axios.get(`${baseUrl}/vin/${vin}`)
 }
 
-export default { getMakes, getCatalogues, getModels, getGroups, getSubGroups, getDrawings, getParts, searchVin }
+export default {
+  getMakes,
+  getCatalogues,
+  getModels,
+  getGroups,
+  getSubGroups,
+  getDrawings,
+  getParts,
+  searchVin
+}
