@@ -21,7 +21,7 @@ export const Models = () => {
       <BreadcrumbsElement make={make} />
       <div className="grid mb-12 grid-cols-4">
         {models.map((model) => (
-          <div key={model.model} className="flex flex-col p-4 bg-white">
+          <div key={model.model} className="flex flex-col p-4">
             <Link
               className="block max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100"
               to={`/catalogues/${make}/${model.model}`}

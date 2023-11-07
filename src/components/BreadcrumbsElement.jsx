@@ -75,7 +75,7 @@ export const BreadcrumbsElement = ({
 
   return (
     <nav
-      className="flex px-5 py-3 text-gray-700 border border-gray-200 rounded-lg bg-gray-50"
+      className="flex px-5 py-3 text-gray-700 border border-gray-200 rounded-lg bg-gray-100"
       aria-label="Breadcrumb"
     >
       <ol className="inline-flex items-center space-x-3">

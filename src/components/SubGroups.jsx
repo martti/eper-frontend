@@ -20,15 +20,22 @@ export const SubGroups = () => {
         catalogue={catalogue}
         group={group}
       />
-      {groups.map((sub_group) => (
-        <Link
-          style={{ display: 'block', margin: '1rem 0' }}
-          to={`/drawings/${make}/${model}/${catalogue}/${group}/${sub_group.code}`}
-          key={sub_group.code}
-        >
-          {sub_group.description}
-        </Link>
-      ))}
+      <div className="grid mb-12 grid-cols-4">
+        {groups.map((sub_group) => (
+          <div key={sub_group.code} className="flex flex-col p-4">
+            <Link
+              className="block max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100"
+              to={`/drawings/${make}/${model}/${catalogue}/${group}/${sub_group.code}`}
+            >
+              <figcaption className="flex items-center space-x-3">
+                <div className="space-y-0.5 font-medium text-left">
+                  {sub_group.description}
+                </div>
+              </figcaption>
+            </Link>
+          </div>
+        ))}
+      </div>
       <Outlet />
     </>
   )

@@ -15,15 +15,27 @@ export const Groups = () => {
   return (
     <>
       <BreadcrumbsElement make={make} model={model} catalogue={catalogue} />
-      {groups.map((group) => (
-        <Link
-          style={{ display: 'block', margin: '1rem 0' }}
-          to={`/sub_groups/${make}/${model}/${catalogue}/${group.code}`}
-          key={group.code}
-        >
-          {group.description}
-        </Link>
-      ))}
+      <div className="grid mb-12 grid-cols-4">
+        {groups.map((group) => (
+          <div key={group.code} className="flex flex-col p-4">
+            <Link
+              className="block max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100"
+              to={`/sub_groups/${make}/${model}/${catalogue}/${group.code}`}
+            >
+              <figcaption className="flex items-center space-x-3">
+                <img
+                  className="rounded-full w-20 h-20"
+                  src={group.image}
+                  alt={group.description}
+                />
+                <div className="space-y-0.5 font-medium text-left">
+                  {group.description}
+                </div>
+              </figcaption>
+            </Link>
+          </div>
+        ))}
+      </div>
       <Outlet />
     </>
   )
